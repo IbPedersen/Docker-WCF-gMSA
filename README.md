@@ -15,7 +15,9 @@ You will in the server see, that the client was connected and some information a
 ### Build image
 Build a Docker image with the WCF tester executable by running
 
-`> build.cmd`
+```cmd
+> build.cmd
+```
 
 Modify `LOCAL_VERSION` (1903) or `AKS_VERSION` (10.0.17763.737) environment varaible in `build.cmd` if other image versions is needed.
 

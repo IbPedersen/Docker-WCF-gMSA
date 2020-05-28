@@ -3,22 +3,19 @@ Test of WCF connectivity using gMSA in Docker, e.g. for AKS
 
 ## Test locally on same machine and same account:
 Run without setting identity.
-
 ```cmd
 > runServer.cmd
 > runClient.cmd
 ```
-
 You will in the server see, that the client was connected and some information about the connection. Depending on the UPN used, the `AuthenticationType` will be `NTLM` or `Kerberos`.
 
 ## Test with server running in Docker
+
 ### Build image
 Build a Docker image with the WCF tester executable by running
-
 ```cmd
 > build.cmd
 ```
-
 Modify `LOCAL_VERSION` (1903) or `AKS_VERSION` (10.0.17763.737) environment varaible in `build.cmd` if other image versions is needed.
 
 ### Test without gMSA
@@ -29,23 +26,29 @@ Run without setting gMSA and identity. Use default `localhost` for client.
 ```
 The connection will fail. It will also fail,if you specify various UPNs on both server and client.
 
-### Test with gMSA
-Run without setting identity. Enter a valid file for gMSA.
+### Test with gMSA using NTLM
+Start server in Docker. Enter a valid json *credentialspec* file for gMSA and not setting identity.
 ```cmd
 > runServerInDocker.cmd
 ```
 The UPN used for service endpoint identity will be `User Manager\ContainerAdministrator`
 
-Now run client, entering `User Manager\ContainerAdministrator` as endpoint identity and using default `localhost`.
+Now run client, using default `localhost` and `User Manager\ContainerAdministrator` as endpoint identity.
 ```cmd
 > runClient.cmd
 ```
-
 The connection should succeed. The `AuthenticationType` will be `NTLM`.
 
-Using a Kerberos identity on the endpoint does not work as the Docker using our gMSA does not have UPN/DistinguishedName.
-
-However, using client from within Docker to a WCF server running on Windows domain will be able to use Kerberos, when specifying Kerberos identity on endpoint in both server and client.
+### Test with gMSA and using Kerberos
+Start server in Docker. Enter a valid json *credentialspec* file for gMSA and use `<domain>\<gMSA>` as identity.
+```cmd
+> runServerInDocker.cmd
+```
+Now run client, using default `localhost` and `<domain>\<gMSA>` as endpoint identity.
+```cmd
+> runClient.cmd
+```
+The connection should succeed. The `AuthenticationType` will be `Kerberos`.
 
 # Identities
 On Windows there are different ways of getting the identity of the logged on user. E.g.
@@ -64,3 +67,7 @@ WCF will use Kerberos for all these
 
 In Docker only one of the above have value:
 1. WindowsIdentity.GetCurrent().Name: User Manager\ContainerAdministrator
+
+WCF will use NTLM when using this as endpoint identity.
+
+However, Kerberos will be used when setting endpoint identity to the gMSA account `<domain>\<gMSA>`.

@@ -1,5 +1,5 @@
 # Docker-WCF-gMSA
-Test of WCF connectivity using gMSA in Docker, e.g. for AKS
+Test of WCF connectivity using gMSA in Docker, e.g. for AKS.
 
 ## Test locally on same machine and same account:
 Run without setting identity.
@@ -9,14 +9,14 @@ Run without setting identity.
 ```
 You will in the server see, that the client was connected and some information about the connection. Depending on the UPN used, the `AuthenticationType` will be `NTLM` or `Kerberos`.
 
-## Test with server running in Docker
+## Test locally with server running in Docker
 
 ### Build image
-Build a Docker image with the WCF tester executable by running
+Build a Docker image with the WCF tester executable by running and selecting *local* 
 ```cmd
 > build.cmd
 ```
-Modify `LOCAL_VERSION` (1903) or `AKS_VERSION` (10.0.17763.737) environment varaible in `build.cmd` if other image versions is needed.
+Modify `LOCAL_VERSION` (1903) environment variable in `build.cmd` if other image version is needed.
 
 ### Test without gMSA
 Run without setting gMSA and identity. Use default `localhost` for client.
@@ -49,6 +49,35 @@ Now run client, using default `localhost` and `<domain>\<gMSA>` as endpoint iden
 > runClient.cmd
 ```
 The connection should succeed. The `AuthenticationType` will be `Kerberos`.
+
+## Testing in AKS
+Build a Docker image with the WCF tester executable by running and selecting *AKS*
+```cmd
+> build.cmd
+```
+Modify `AKS_VERSION` (10.0.17763.737) environment variable in `build.cmd` if other image version is needed.
+
+Use `--security-opt "credentialspec=file://<gMSAfile>"` on the pods.
+
+### Run WCF with NTLM
+Server pod:
+```cmd
+WCF.exe -server=60000
+```
+Client pod:
+```cmd
+WCF.exe -client=<serverHost>:60000
+```
+
+### Run WCF with Kerberos
+Server pod:
+```cmd
+WCF.exe -server=60000 -upn=<domain>\<gMSA>
+```
+Client pod:
+```cmd
+WCF.exe -client=<serverHost>:60000 -upn=<domain>\<gMSA>
+```
 
 # Identities
 On Windows there are different ways of getting the identity of the logged on user. E.g.
